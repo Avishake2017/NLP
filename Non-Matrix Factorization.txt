@@ -1,0 +1,13 @@
+'''Non-Negative Matrix Factorization'''
+    
+    tfidf = TfidfVectorizer(max_df = 0.9,min_df = 2, stop_words = 'english')
+
+    dtm = tfidf.fit_transform(finalSentences)
+    
+    nmf_model = NMF(n_components = 7, random_state = 42)
+    nmf_model.fit(dtm)
+
+    for index, topic in enumerate(nmf_model.components_):
+        print("Top 10 words for topic "+str(index)+" are")
+        print([tfidf.get_feature_names()[index] for index in topic.argsort()[-10:]])
+        print('\n')

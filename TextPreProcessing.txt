@@ -1,0 +1,119 @@
+def tokenizeToSentence(text):
+        alphabets= "([A-Za-z])"
+        prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
+        suffixes = "(Inc|Ltd|Jr|Sr|Co)"
+        starters = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+        acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+        websites = "[.](com|net|org|io|gov)"
+
+        
+        
+        text = "" + text + ""
+        text = text.replace("\n"," ")
+        text = re.sub(prefixes,"\\1<prd>",text)
+        text = re.sub(websites,"<prd>\\1",text)
+        if "Ph.D" in text: text = text.replace("Ph.D.","Ph<prd>D<prd>")
+        text = re.sub("\s" + alphabets + "[.] "," \\1<prd> ",text)
+        text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
+        text = re.sub(alphabets + "[.]" + alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
+        text = re.sub(alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>",text)
+        text = re.sub(" "+suffixes+"[.] "+starters," \\1<stop> \\2",text)
+        text = re.sub(" "+suffixes+"[.]"," \\1<prd>",text)
+        text = re.sub(" " + alphabets + "[.]"," \\1<prd>",text)
+        if "”" in text: text = text.replace(".”","”.")
+        if "\"" in text: text = text.replace(".\"","\".")
+        if "!" in text: text = text.replace("!\"","\"!")
+        if "?" in text: text = text.replace("?\"","\"?")
+        text = text.replace(".",".<stop>")
+        text = text.replace("?","?<stop>")
+        text = text.replace("!","!<stop>")
+        text = text.replace("<prd>",".")
+        sentences = text.split("<stop>")
+        sentences = sentences[:-1]
+        sentences = [s.strip() for s in sentences]
+
+        return sentences
+
+def stopWordsRemoval(words):
+    customStopWords = set(stopwords.words('english'))
+    
+    return [word for word in words if word not in customStopWords]
+
+def lemmatizeWords(words):
+    newWords = []
+    for word in words:
+        newWords.append(lemmatizer.lemmatize(word))
+    
+    #print(newWords)
+    return newWords
+
+def Pstemming(words):
+    newWords2 = []
+    ps = PorterStemmer()
+    for word in words:
+        newWords2.append(ps.stem(word))
+        
+    return newWords2
+
+def adjustText(text):
+    '''Pre Processing'''  
+    bad_chars = ['"']
+    txt = re.sub(r'(?<=\d)[\.](?=\d)','pt',str(text))
+    txt = ''.join(i for i in txt if not i in bad_chars)
+    
+    return txt    
+
+'''new function'''
+def calculateStandardDeviation(mu,length):
+    '''calculation of standard deviation'''
+    s = 0
+    intermediate = 0
+    for i in length:
+        s = s + ((i-mu)*(i-mu))
+    intermediate = s/len(length)
+    sigma = math.sqrt(intermediate)
+    #print("sigma",sigma)
+    return sigma
+
+'''REGEX'''
+
+text = re.sub(r'''(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))''', " ", text)
+    #text = re.sub('[^A-Za-z.0-9]+', '', text)
+    
+    '''Removed Unnecessary punctuations'''
+    text = re.sub('[!#?,<>"»;]', ' ', text)
+    
+                    
+    '''Removing Page No'''
+    text = re.sub('PageNo:::::\d', ' ', text)
+    
+    '''Adjusted Text and removed bad chars'''
+    text = adjustText(text)
+    
+    '''Splitting into sentences'''
+    sentences = tokenizeToSentence(text)
+
+'''Changes'''
+    '''Keeping sentences within 2 StandardDeviation'''
+    lengthOfSentence = []
+    for sent in sentences:    
+        lengthOfSentence.append(len(word_tokenize(sent)))
+    
+    for i in lengthOfSentence:
+        sumOfAll += i
+    
+    mu = sumOfAll/len(lengthOfSentence)
+    print("mu",mu)
+    
+    standardDeviation = calculateStandardDeviation(mu,lengthOfSentence)
+    
+    muPlusTwoStandardDev = round(mu + 2*standardDeviation)
+    muMinusStandardDev =round(mu - standardDeviation)
+    
+    finalSentences = list(filter(lambda sentences: (len(word_tokenize(sentences)) > muMinusStandardDev or len(word_tokenize(sentences)) > muMinusStandardDev ), sentences))
+    
+    '''Taking list back to str type'''
+    textAfterPreProcess = ''
+    for sent in finalSentences:
+        textAfterPreProcess += str(sent)
+        textAfterPreProcess += '\n'

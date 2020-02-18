@@ -1,0 +1,17 @@
+jarFileNames = r';C:\Users\avishake.dutta\Desktop\Jars\pdfbox-2.0.12.jar;C:\Users\avishake.dutta\Desktop\Jars\commons-logging-1.2.jar;C:\Users\avishake.dutta\Desktop\Jars\fontbox-2.0.12.jar'
+    #jarFileNames        = ''.join([";"+pdfBoxJarDir+"\\"+x for x in jarFileNames])
+    javaClassPath = r'C:\Users\avishake.dutta\Desktop\Jars'
+    inputFilePath = r'C:\Users\avishake.dutta\Desktop\Jars\"Name of your pdf"'
+    textFilePath  = r'C:\Users\avishake.dutta\Desktop\Jars\"name of your text file"'
+    commandStr       = 'java -cp ' + '"' +  jarFileNames + ";"+javaClassPath+'" utility.ExtractData "'  + inputFilePath + '" > "'  + textFilePath + '"'
+
+    subprocess.run(commandStr ,shell=True)
+    
+    '''What if the file doesn`t exist or the path is incorrect'''
+    
+    try:
+        f = open(r'C:\Users\avishake.dutta\Desktop\Jars\name of your text file','r')
+        text = f.read()
+        f.close()
+    except FileNotFoundError:
+        print("Please provide the correct path")

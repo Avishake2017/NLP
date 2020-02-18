@@ -1,0 +1,14 @@
+'''LDA'''
+    '''Latent Dirichlet Allocation'''
+    cv = CountVectorizer(max_df = 0.9,min_df = 2,stop_words = 'english')
+    dtm = cv.fit_transform(finalSentences)
+
+    
+    LDA = LatentDirichletAllocation(n_components = 7,random_state = 42)
+
+    LDA.fit(dtm)
+
+    for i,topic in enumerate (LDA.components_):
+        print("Top 10 words for topic "+str(i)+" are")
+        print([cv.get_feature_names()[index] for index in topic.argsort()[-10:]])
+        print("\n")

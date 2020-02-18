@@ -1,0 +1,44 @@
+import re
+import math
+from nltk.tokenize import word_tokenize
+import subprocess
+#from string import punctuation
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from nltk.stem.porter import PorterStemmer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
+from sklearn.decomposition import NMF
+
+def stopWordsRemoval(words):
+    customStopWords = set(stopwords.words('english'))
+    
+    return [word for word in words if word not in customStopWords]
+
+def lemmatizeWords(words):
+    newWords = []
+    for word in words:
+        newWords.append(lemmatizer.lemmatize(word))
+    
+    #print(newWords)
+    return newWords
+
+def Pstemming(words):
+    newWords2 = []
+    ps = PorterStemmer()
+    for word in words:
+        newWords2.append(ps.stem(word))
+        
+    return newWords2
+
+'''Trying to improve the efficiency of LDA'''
+    '''Removal of Stop Words from the Text'''
+    wordTokenizedText = word_tokenize(textAfterPreProcess)
+    wordsAfterStopWordsRemoval = stopWordsRemoval(wordTokenizedText)
+
+    '''Lemmatisation'''
+    lemmatizer = WordNetLemmatizer()
+    wordsAfterLemmatization = lemmatizeWords(wordsAfterStopWordsRemoval)    
+    
+    wordsAfterPorterStemming = Pstemming(wordsAfterStopWordsRemoval)
