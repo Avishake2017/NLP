@@ -1,0 +1,111 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 24 11:46:59 2020
+
+@author: avishake.dutta
+"""
+
+import re
+import numpy as np
+from nltk import word_tokenize
+import heapq
+#from nltk import sentence_tokenizer
+
+
+def tokenizeToSentence(text):
+        alphabets= "([A-Za-z])"
+        prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
+        suffixes = "(Inc|Ltd|Jr|Sr|Co)"
+        starters = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+        acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+        websites = "[.](com|net|org|io|gov)"
+
+        text = "" + text + ""
+        text = text.replace("\n"," ")
+        text = re.sub(prefixes,"\\1<prd>",text)
+        text = re.sub(websites,"<prd>\\1",text)
+        if "Ph.D" in text: text = text.replace("Ph.D.","Ph<prd>D<prd>")
+        text = re.sub("\s" + alphabets + "[.] "," \\1<prd> ",text)
+        text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
+        text = re.sub(alphabets + "[.]" + alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
+        text = re.sub(alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>",text)
+        text = re.sub(" "+suffixes+"[.] "+starters," \\1<stop> \\2",text)
+        text = re.sub(" "+suffixes+"[.]"," \\1<prd>",text)
+        text = re.sub(" " + alphabets + "[.]"," \\1<prd>",text)
+        if "”" in text: text = text.replace(".”","”.")
+        if "\"" in text: text = text.replace(".\"","\".")
+        if "!" in text: text = text.replace("!\"","\"!")
+        if "?" in text: text = text.replace("?\"","\"?")
+        text = text.replace(".",".<stop>")
+        text = text.replace("?","?<stop>")
+        text = text.replace("!","!<stop>")
+        text = text.replace("<prd>",".")
+        sentences = text.split("<stop>")
+        sentences = sentences[:-1]
+        sentences = [s.strip() for s in sentences]
+
+        return sentences
+
+if __name__ == '__main__':
+    text = '''Knowledge Graph (KG) plays a crucial role in many modern
+    applications. Nevertheless  constructing KG from unstruc-
+    tured text is a challenging problem due to its nature. Con-
+    sequently  many approaches propose to transform unstruc-
+    tured text to structured text in order to create a KG. Such
+    approaches cannot yet provide reasonable results for mapping
+    an extracted predicate to its identical predicate in another KG.
+    Predicate mapping is an essential procedure because it can
+    reduce the heterogeneity problem and increase searchability
+    over a KG. In this paper  we propose T2KG system  an end-
+    to-end system with keeping such problem into consideration.
+    In the system  a hybrid combination of a rule-based approach
+    and a similarity-based approach is presented for mapping a
+    predicate to its identical predicate in a KG. Based on prelim-
+    inary experimental results  the hybrid approach improves the
+    recall by 10pt02% and the F-measure by 6pt56% without reduc-
+    ing the precision in the predicate mapping task. Furthermore 
+    although the KG creation is conducted in open domains  the
+    system still achieves approximately 50% of F-measure for
+    generating triples in the KG creation task.
+    Introduction'''
+    
+    tokenizedSentence = tokenizeToSentence(text)
+    #print(tokenizedSentence)
+    
+    '''Pre-Processing on the text'''
+    for i in range(len(tokenizedSentence)):
+        tokenizedSentence[i] = tokenizedSentence[i].lower()
+        tokenizedSentence[i] = re.sub(r'\W', ' ', tokenizedSentence[i]) 
+        tokenizedSentence[i] = re.sub(r'\s+', ' ', tokenizedSentence[i]) 
+
+    wordCount = {}
+    for sents in tokenizedSentence:
+        words = word_tokenize(sents)
+        for word in words:
+            if word not in wordCount.keys():
+                wordCount[word] = 1
+            else:
+                wordCount[word] += 1
+    
+    #print(wordCount)
+    '''Selecting only the top ocurring words using heapq'''
+    frequentWords = heapq.nlargest(100, wordCount, key=wordCount.get)
+    
+    print(frequentWords)
+    
+    X = []
+    
+    for sents in tokenizedSentence:
+        vector = []
+        for word in frequentWords:
+            if word in word_tokenize(sents):
+                vector.append(1)
+            else:
+                vector.append(0)
+        X.append(vector)
+    X = np.asarray(X)
+    
+    print(X)
+                    
+    
+    
